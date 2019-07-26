@@ -66,7 +66,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：[]表示可自定义；仅适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.0（是梦~`20190724）
+Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.0（是梦~`20190727）
 Return
 
 Gosub, 说明

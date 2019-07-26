@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III猎魔人暗影飞刀AHK宏
-; v2.3 20190724 
+; v2.4 20190727
 ; Present by 是梦~` QQ: 46317239
 ;=========================================
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -65,7 +65,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：[]表示可自定义；如需在游戏中使用上下滚轮，必先关闭宏功能！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v2.3（是梦~`20190724）
+Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v2.4（是梦~`20190727）
 Return
 
 Gosub, 说明
