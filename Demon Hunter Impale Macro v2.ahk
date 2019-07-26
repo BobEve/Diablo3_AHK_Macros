@@ -181,9 +181,9 @@ If (All_On) {
         If (GetKeyState("LButton")) {
             Click, Left, , Up
             Click, Right, 1
-            Gosub, do_roll
             Sleep, 200
             Click, Left, , Down
+            Gosub, do_roll
         }
         Else {
             If (!GetKeyState("RButton")) {
