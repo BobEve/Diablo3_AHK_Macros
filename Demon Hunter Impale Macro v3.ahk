@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III猎魔人暗影飞刀AHK宏
-; v3.0 20190727
+; v3.2 20190727
 ; Present by 是梦~` QQ: 46317239
 ;=========================================
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -20,20 +20,26 @@ SetBatchLines -1
 
 ;可自定义的参数
 ;/////////////////////////////////////////////////////////
-P_MsgBoxTimeOut := 0.8       ;提示框超时的时间，单位秒，默认0.8秒
-P_VengeanceInterval := 75    ;复仇CD探测间隔，默认75毫秒，50~100
-P_KnivesInterval := 75       ;刀扇CD探测间隔，默认75毫秒，50~100
-P_AutoPickInterval := 50     ;自动拾取间隔，默认50毫秒
-P_AutoBuyInterval := 50      ;自动购买间隔, 默认50毫秒
-P_AutoBuyQuantity := 30      ;自动购买次数，默认30次
+P_MsgBoxTimeOut := 0.8              ;提示框超时的时间，单位秒，默认0.8秒
+P_AutoPickInterval := 50            ;自动拾取间隔，默认50毫秒
+P_AutoBuyInterval := 50             ;自动购买间隔, 默认50毫秒
+P_AutoBuyQuantity := 30             ;自动购买次数，默认30次
+
+P_HealthWarningInterval := 300      ;血量低于30%探测间隔，默认300毫秒
+P_ShadowStateProbeInterval := 500   ;暗影之力状态探测间隔，默认500毫秒
+P_VengeanceCDProbeInterval := 75    ;复仇CD探测间隔，默认75毫秒，50~100
+P_KnivesCDProbeInterval := 75       ;刀扇CD探测间隔，默认75毫秒，50~100
 ;/////////////////////////////////////////////////////////
 
 All_On := 0                 ;总开关
 ;开关----------
-AutoPick_Flag := 0          ;左键自动拾取开关
-AutoProtect_Flag := 0       ;自动施放保护技能开关
+F_AutoPick := 0             ;左键自动拾取开关
+F_AutoProtect := 0          ;自动施放保护技能开关
+F_AutoPotion := 1           ;血量低于30%自动喝药水
+F_KeepShadowOn := 1         ;保持暗影之力开启状态
 ;状态----------
-Attack_State := 0           ;右键攻击状态
+S_RAttack := 0              ;右键攻击状态
+S_IsDead := 0               ;角色死亡状态 0：存活，1：死亡
 
 
 ;右下角菜单
@@ -54,27 +60,44 @@ Gui Font, Bold
 Gui Add, GroupBox, x10 y70 w500 h250, 热键设置
 Gui Font
 Gui Add, Text, x20 y90 w480 h20 +0x200, ·F7：暂停/继续、ALT+F7：退出
-Gui Add, Text, x20 y115 w480 h20 +0x200, ·F1：开启或关闭宏功能（默认关闭，运行后需手动开启）
+Gui Add, Text, x20 y115 w480 h20 +0x200, ·F1：开启或关闭宏功能（默认关闭，开启后保持暗影之力、血量低于30`%自动喝药水）
 Gui Add, Text, x20 y140 w480 h20 +0x200, ·F2：点击开始拾取（需要鼠标配合移动），再次点击停止
 Gui Add, Text, x20 y165 w480 h20 +0x200, ·F3：点击自动购买[30]次装备（鼠标放到要购买的装备上）
 Gui Add, Text, x20 y190 w480 h20 +0x200, ·2：暗影飞刀+影轮翻（非自动攻击时）、影轮翻（自动攻击时）
 Gui Add, Text, x20 y215 w480 h20 +0x200, ·上滚轮：同上
-Gui Add, Text, x20 y240 w480 h20 +0x200, ·滚轮点击/~：点击立即施放暗影之力，自动保持复仇、刀扇状态，再次点击停止
+Gui Add, Text, x20 y240 w480 h20 +0x200, ·滚轮点击/~：自动保持复仇、刀扇状态（CD探测间隔[75]毫秒），再次点击停止
 Gui Add, Text, x20 y265 w480 h20 +0x200, ·下滚轮：自动施放暗影飞刀
 Gui Add, Text, x20 y290 w480 h20 +0x200, ·右键：关闭自动施放暗影飞刀
 Gui Font, Bold cRed
-Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：[]表示可自定义；仅适配1920x1080(16:9宽屏)！
+Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：[]表示可自定义；适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.0（是梦~`20190727）
+Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.2（是梦~`20190727）
 Return
 
 Gosub, 说明
 
+;函数-------------------------
 ;显示一个在指定时间内自动消失的提示框
 showMsg(content) {
     global P_MsgBoxTimeOut
     MsgBox 64, 消息, %content%, %P_MsgBoxTimeOut%
+}
+
+;True：角色死亡
+isDead() {
+    PixelGetColor, lifebar_color1, 32, 123, RGB
+    PixelGetColor, lifebar_color2, 32, 127, RGB
+    global S_IsDead
+    S_IsDead := (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) ? 1 : 0
+    return S_IsDead = 1
+}
+
+;True：药水冷却中
+isPotionCooling() {
+    PixelGetColor, potion_color1, 1062, 1004 ,RGB
+    PixelGetColor, potion_color2, 1062, 1007 ,RGB
+    return (potion_color1 = 0x151617 && potion_color2 = 0x1D1E1F) ? False : True
 }
 
 ;技能操作---------------------
@@ -86,12 +109,33 @@ return
 ;停止拾取
 stop_pick:
     SetTimer, do_pick, Off
-    AutoPick_Flag := 0
+    F_AutoPick := 0
+return
+
+;血量低于30%时喝药水
+do_potion:
+    If (!isDead()) {
+        PixelGetColor, lifebar_color1, % 32 + Floor(60 * 0.3), 123 ,RGB
+        PixelGetColor, lifebar_color2, % 32 + Floor(60 * 0.3), 127 ,RGB
+        If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
+            If (!isPotionCooling()) {
+                Send, {q}
+            }
+        }
+    }
+    Else {
+        ;角色死亡
+        ;do somthing...
+    }
 return
 
 ;暗影之力
 do_shadow:
-    Send, {1}
+    PixelGetColor, shadow_off_color1, 634, 1004 ,RGB
+    PixelGetColor, shadow_off_color2, 683, 1053 ,RGB
+    If (shadow_off_color1 = 0x3B3838 && shadow_off_color2 = 0x3C3952) {
+        Send, {1}
+    }
 return
 
 ;影轮翻
@@ -102,7 +146,7 @@ return
 ;复仇
 do_vengeance:
     PixelGetColor, vengeance_cd_color, 791, 1007 ,RGB
-    If (vengeance_cd_color = 0x570E01) {
+    If (vengeance_cd_color = 0x570E01 || vengeance_cd_color = 0x560D00) {
         Send, {3}
     }
 return
@@ -110,7 +154,7 @@ return
 ;刀扇
 do_knives:
     PixelGetColor, knives_cd_color, 858, 1007 ,RGB
-    If (knives_cd_color = 0x652015) {
+    If (knives_cd_color = 0x652015 || knives_cd_color = 0x641F14) {
         Send, {4}
     }
 return
@@ -119,7 +163,7 @@ return
 stop_protect:
     SetTimer, do_vengeance, Off
     SetTimer, do_knives, Off
-    AutoProtect_Flag := 0
+    F_AutoProtect := 0
 return
 
 
@@ -128,17 +172,29 @@ return
 $F1::
 All_On := !All_On
 If (All_On) {
+    If (F_AutoPotion) {
+        SetTimer, do_potion, %P_HealthWarningInterval%
+    }
+    If (F_KeepShadowOn) {
+        SetTimer, do_shadow, %P_ShadowStateProbeInterval%
+    }
     showMsg("Macro On")
 }
 Else {
-    If (AutoPick_Flag) {
+    If (F_AutoPick) {
         Gosub, stop_pick
     }
-    IF (Attack_State) {
+    IF (S_RAttack) {
         Gosub, stop_attack
     }
-    If (AutoProtect_Flag) {
+    If (F_AutoProtect) {
         Gosub, stop_protect
+    }
+    If (F_AutoPotion) {
+        SetTimer, do_potion, Off
+    }
+    If (F_KeepShadowOn) {
+        SetTimer, do_shadow, Off
     }
     showMsg("Macro Off")
 }
@@ -147,9 +203,9 @@ return
 ;【F2】开启、关闭自动拾取
 $F2::
 If (All_On) {
-    AutoPick_Flag := !AutoPick_Flag
-    If (AutoPick_Flag) {
-        If (Attack_State) {
+    F_AutoPick := !F_AutoPick
+    If (F_AutoPick) {
+        If (S_RAttack) {
             Gosub, stop_attack
         }
         SetTimer, do_pick, %P_AutoPickInterval%
@@ -163,10 +219,10 @@ return
 ;【F3键】一键购买30次装备
 $F3:: 
 If (All_On) {
-    If (AutoPick_Flag) {
+    If (F_AutoPick) {
         Gosub, stop_pick
     }
-    If (Attack_State) {
+    If (S_RAttack) {
         Gosub, stop_attack
     }
     Loop, %P_AutoBuyQuantity% {
@@ -181,7 +237,7 @@ $*2::
 ;【鼠标滚轮向上】
 ~$*WheelUp::
 If (All_On) {
-    If (Attack_State) {
+    If (S_RAttack) {
         Goto, do_roll
     }
     Else {
@@ -208,14 +264,14 @@ return
 ;【鼠标滚轮向下】自动施放鼠标右键攻击
 ~$*WheelDown::
 If (All_On) {
-    If (AutoPick_Flag) {
+    If (F_AutoPick) {
         Gosub, stop_pick
     }
     ;防止左右键冲突
     If (GetKeyState("LButton")) {
         Click, Left, , Up
     }
-    Attack_State := 1
+    S_RAttack := 1
     Click, Right, , Down
 }
 return
@@ -223,22 +279,22 @@ return
 ;【鼠标右键】手动点击鼠标右键时结束自动攻击状态
 ~$RButton::
 stop_attack:
-If (Attack_State) {
+If (S_RAttack) {
     Click, Right, , Up
-    Attack_State := 0
+    S_RAttack := 0
 }
 return
 
 ;【`键】数字1左边的键
 ~$`::
-;【鼠标滚轮点击】立即施放1次暗影之力，每隔200毫秒自动施放复仇、刀扇
+;【鼠标滚轮点击】自动探测复仇、刀扇冷却状态，并自动施放
 $MButton::
 If (All_On) {
-    AutoProtect_Flag := !AutoProtect_Flag
-    If (AutoProtect_Flag) {
-        Gosub, do_shadow
-        SetTimer, do_vengeance, %P_VengeanceInterval%
-        SetTimer, do_knives, %P_KnivesInterval%
+    F_AutoProtect := !F_AutoProtect
+    If (F_AutoProtect) {
+        ;Gosub, do_shadow
+        SetTimer, do_vengeance, %P_VengeanceCDProbeInterval%
+        SetTimer, do_knives, %P_KnivesCDProbeInterval%
     }
     Else {
         Goto, stop_protect
