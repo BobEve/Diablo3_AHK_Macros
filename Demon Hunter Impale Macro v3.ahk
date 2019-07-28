@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III猎魔人暗影飞刀AHK宏
-; v3.2 20190727
+; v3.3 20190728
 ; Present by 是梦~` QQ: 46317239
 ;=========================================
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -25,7 +25,7 @@ P_AutoPickInterval := 50            ;自动拾取间隔，默认50毫秒
 P_AutoBuyInterval := 50             ;自动购买间隔, 默认50毫秒
 P_AutoBuyQuantity := 30             ;自动购买次数，默认30次
 
-P_HealthWarningInterval := 300      ;血量低于30%探测间隔，默认300毫秒
+P_HealthMonitorInterval := 300      ;血量低于30%探测间隔，默认300毫秒
 P_ShadowStateProbeInterval := 500   ;暗影之力状态探测间隔，默认500毫秒
 P_VengeanceCDProbeInterval := 75    ;复仇CD探测间隔，默认75毫秒，50~100
 P_KnivesCDProbeInterval := 75       ;刀扇CD探测间隔，默认75毫秒，50~100
@@ -72,7 +72,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：[]表示可自定义；适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.2（是梦~`20190727）
+Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.3（是梦~`20190728）
 Return
 
 Gosub, 说明
@@ -100,6 +100,7 @@ isPotionCooling() {
     return (potion_color1 = 0x151617 && potion_color2 = 0x1D1E1F) ? False : True
 }
 
+
 ;技能操作---------------------
 ;拾取
 do_pick:
@@ -112,21 +113,9 @@ stop_pick:
     F_AutoPick := 0
 return
 
-;血量低于30%时喝药水
+;喝药水
 do_potion:
-    If (!isDead()) {
-        PixelGetColor, lifebar_color1, % 32 + Floor(60 * 0.3), 123 ,RGB
-        PixelGetColor, lifebar_color2, % 32 + Floor(60 * 0.3), 127 ,RGB
-        If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
-            If (!isPotionCooling()) {
-                Send, {q}
-            }
-        }
-    }
-    Else {
-        ;角色死亡
-        ;do somthing...
-    }
+    Send, {q}
 return
 
 ;暗影之力
@@ -173,7 +162,7 @@ $F1::
 All_On := !All_On
 If (All_On) {
     If (F_AutoPotion) {
-        SetTimer, do_potion, %P_HealthWarningInterval%
+        SetTimer, health_monitor, %P_HealthMonitorInterval%
     }
     If (F_KeepShadowOn) {
         SetTimer, do_shadow, %P_ShadowStateProbeInterval%
@@ -191,13 +180,37 @@ Else {
         Gosub, stop_protect
     }
     If (F_AutoPotion) {
-        SetTimer, do_potion, Off
+        SetTimer, health_monitor, Off
     }
     If (F_KeepShadowOn) {
         SetTimer, do_shadow, Off
     }
     showMsg("Macro Off")
 }
+return
+
+;角色血量监视器
+health_monitor:
+    If (isDead()) {
+        ;角色死亡
+        Gosub, when_player_dead
+    }
+    Else {
+        PixelGetColor, lifebar_color1, % 32 + Floor(60 * 0.3), 123 ,RGB
+        PixelGetColor, lifebar_color2, % 32 + Floor(60 * 0.3), 127 ,RGB
+        ;血量低于30%
+        If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
+            If (!isPotionCooling()) {
+                ;喝药水
+                Gosub, do_potion
+            }
+        }
+    }
+return
+
+;当角色死亡时，停止所有主动操作
+when_player_dead:
+    ;do somthing...
 return
 
 ;【F2】开启、关闭自动拾取
