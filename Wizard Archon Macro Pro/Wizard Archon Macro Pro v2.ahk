@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III魔法师维尔御法者AHK宏
-; Pro Edition v2.8 20190803
+; Pro Edition v2.9 20190807
 ; Present by 是梦~` QQ: 46317239
 ;=========================================
 #NoEnv
@@ -97,7 +97,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y350 w480 h20 +0x200, 注意：[]表示可自定义；仅适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w530 h375, 暗黑III魔法师维尔御法者AHK宏加强版v2.8（是梦~`20190803）
+Gui Show, w530 h375, 暗黑III魔法师维尔御法者AHK宏加强版v2.9（是梦~`20190807）
 Return
 
 Gosub, 说明
@@ -127,6 +127,10 @@ isPotionCooling() {
 
 
 ;技能操作---------------------
+;什么都不做
+void:
+return
+
 ;鼠标左键攻击
 do_lattack:
     Click, Left, 1
@@ -208,13 +212,18 @@ return
 archon_ready:
 loop_count := 0
 Loop {
-    ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\skill4.png
-    If (ErrorLevel = 0) {
-        Break
+    If (S_IsDead) {
+        Goto, void
     }
-    loop_count++
-    If (loop_count > 5) {
-        Goto, do_archon
+    Else {
+        ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\skill4.png
+        If (ErrorLevel = 0) {
+            Break
+        }
+        loop_count++
+        If (loop_count > 5) {
+            Goto, do_archon
+        }
     }
     Sleep, 20
 }
@@ -366,17 +375,24 @@ Loop {
     If (All_On && F_AutoBlack) {
         If (S_ChantodoBuff20) {
             Loop {
-                ;等待黑人技能CD
-                ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon.png
-                If (ErrorLevel > 0) {
-                    ;首次
-                    ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon1.png
+                If (S_IsDead) {
+                    Goto, void
                 }
-                If (ErrorLevel = 0 || S_IsBlack) {
-                    Break
+                Else {
+                    ;等待黑人技能CD
+                    ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon.png
+                    If (ErrorLevel > 0) {
+                        ;首次
+                        ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon1.png
+                    }
+                    If (ErrorLevel = 0 || S_IsBlack) {
+                        Break
+                    }
                 }
                 Sleep, 20
             }
+            Until (!All_On)
+
             If (!S_IsBlack) {
                 Gosub, active_archon
                 Sleep, 20000
