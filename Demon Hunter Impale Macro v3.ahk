@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III猎魔人暗影飞刀AHK宏
-; v3.3 20190728
+; v3.4 20190811
 ; Present by 是梦~` QQ: 46317239
 ;=========================================
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -40,6 +40,7 @@ F_KeepShadowOn := 1         ;保持暗影之力开启状态
 ;状态----------
 S_RAttack := 0              ;右键攻击状态
 S_IsDead := 0               ;角色死亡状态 0：存活，1：死亡
+S_CleanedUp := 0            ;角色死亡后清理状态 0：未清理，1：已清理
 
 
 ;右下角菜单
@@ -72,7 +73,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：[]表示可自定义；适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.3（是梦~`20190728）
+Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.4（是梦~`20190811）
 Return
 
 Gosub, 说明
@@ -88,9 +89,15 @@ showMsg(content) {
 isDead() {
     PixelGetColor, lifebar_color1, 32, 123, RGB
     PixelGetColor, lifebar_color2, 32, 127, RGB
-    global S_IsDead
+    global S_IsDead, S_CleanedUp
     S_IsDead := (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) ? 1 : 0
-    return S_IsDead = 1
+    If (S_IsDead = 1) {
+        return True
+    }
+    Else {
+        S_CleanedUp := 0
+        return False
+    }
 }
 
 ;True：药水冷却中
@@ -191,25 +198,29 @@ return
 
 ;角色血量监视器
 health_monitor:
-    If (isDead()) {
+If (isDead()) {
+    If (!S_CleanedUp) {
         ;角色死亡
-        Gosub, when_player_dead
+        Gosub, when_character_dies
+        ;清扫标记
+        S_CleanedUp := 1
     }
-    Else {
-        PixelGetColor, lifebar_color1, % 32 + Floor(60 * 0.3), 123 ,RGB
-        PixelGetColor, lifebar_color2, % 32 + Floor(60 * 0.3), 127 ,RGB
-        ;血量低于30%
-        If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
-            If (!isPotionCooling()) {
-                ;喝药水
-                Gosub, do_potion
-            }
+}
+Else {
+    PixelGetColor, lifebar_color1, % 32 + Floor(60 * 0.3), 123 ,RGB
+    PixelGetColor, lifebar_color2, % 32 + Floor(60 * 0.3), 127 ,RGB
+    ;血量低于30%
+    If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
+        If (!isPotionCooling()) {
+            ;喝药水
+            Gosub, do_potion
         }
     }
+}
 return
 
-;当角色死亡时，停止所有主动操作
-when_player_dead:
+;当角色死亡时执行的清理工作
+when_character_dies:
     ;do somthing...
 return
 
