@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III魔法师维尔御法者AHK宏
-; Lite Edition v2.4 20190724
+; Lite Edition v2.5 20190811
 ; Present by 是梦~` QQ: 46317239
 ;=========================================
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -79,7 +79,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y350 w480 h20 +0x200, 注意：[]表示可自定义；如需在游戏中使用上下滚轮，必先关闭宏功能！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h375, 暗黑III魔法师维尔御法者AHK宏简化版v2.4（是梦~`20190724）
+Gui Show, w520 h375, 暗黑III魔法师维尔御法者AHK宏简化版v2.5（是梦~`20190811）
 Return
 
 Gosub, 说明
@@ -199,6 +199,7 @@ $F3::
 If (All_On) {
     If (S_LAttack) {
         Gosub, stop_lattack
+        F_AutoPick := 0
     }
     If (S_RAttack) {
         Gosub, stop_rattack
@@ -235,7 +236,7 @@ If (All_On && (!S_LAttack || F_AutoPick)) {
     }
     Send, {Shift Down}  ;按下Shift
     If (F_AutoPick) {
-        F_AutoPick := 0        
+        F_AutoPick := 0
     }
     Else {
         SetTimer, do_lattack, %P_LAttackInterval%
@@ -249,6 +250,7 @@ return
 If (All_On) {
     If (S_LAttack) {
         Gosub, stop_lattack
+        F_AutoPick := 0
     }
     Click, Down, Right  ;按下鼠标右键
     S_RAttack := 1
