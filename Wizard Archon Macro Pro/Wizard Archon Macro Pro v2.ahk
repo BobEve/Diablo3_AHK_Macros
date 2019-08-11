@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III魔法师维尔御法者AHK宏
-; Pro Edition v2.9 20190807
+; Pro Edition v2.11 20190811
 ; Present by 是梦~` QQ: 46317239
 ;=========================================
 #NoEnv
@@ -61,6 +61,7 @@ S_AutoWave := 0             ;自动施放1技能状态
 S_IsBlack := 0              ;黑人状态 0：白人，1：黑人
 S_ChantodoBuff20 := 0       ;迦陀朵buff状态 0：非20层，1：20层
 S_IsDead := 0               ;角色死亡状态 0：存活，1：死亡
+S_CleanedUp := 0            ;角色死亡后清理状态 0：未清理，1：已清理
 
 
 ;注册可自定义热键
@@ -97,7 +98,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y350 w480 h20 +0x200, 注意：[]表示可自定义；仅适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w530 h375, 暗黑III魔法师维尔御法者AHK宏加强版v2.9（是梦~`20190807）
+Gui Show, w530 h375, 暗黑III魔法师维尔御法者AHK宏加强版v2.11（是梦~`20190811）
 Return
 
 Gosub, 说明
@@ -113,9 +114,15 @@ showMsg(content) {
 isDead() {
     PixelGetColor, lifebar_color1, 32, 123, RGB
     PixelGetColor, lifebar_color2, 32, 127, RGB
-    global S_IsDead
+    global S_IsDead, S_CleanedUp
     S_IsDead := (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) ? 1 : 0
-    return S_IsDead = 1
+    If (S_IsDead = 1) {
+        return True
+    }
+    Else {
+        S_CleanedUp := 0
+        return False
+    }
 }
 
 ;True：药水冷却中
@@ -162,14 +169,14 @@ return
 do_armor:
 If (!S_IsBlack) {
     ;暴风护甲
-    ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\strom_armor.png
+    ImageSearch, armorX, armorY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\strom_armor.png
     If (ErrorLevel > 0) {
-        ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\strom_armor1.png
+        ImageSearch, armorX, armorY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\strom_armor1.png
         If (ErrorLevel > 0) {
             ;能量护甲
-            ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\energy_armor.png
+            ImageSearch, armorX, armorY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\energy_armor.png
             If (ErrorLevel > 0) {
-                ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\energy_armor1.png
+                ImageSearch, armorX, armorY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\energy_armor1.png
             }
         }
     }
@@ -183,9 +190,9 @@ return
 do_magicWeapon:
 If (!S_IsBlack) {
     ;魔法武器
-    ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\magic_weapon.png
+    ImageSearch, magicWeaponX, magicWeaponY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\magic_weapon.png
     If (ErrorLevel > 0) {
-        ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\magic_weapon1.png
+        ImageSearch, magicWeaponX, magicWeaponY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\magic_weapon1.png
     }
     If (ErrorLevel = 0) {
         Send, {%K_WizardMagicWeapon%}
@@ -216,7 +223,7 @@ Loop {
         Goto, void
     }
     Else {
-        ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\skill4.png
+        ImageSearch, skill4X, skill4Y, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\skill4.png
         If (ErrorLevel = 0) {
             Break
         }
@@ -317,6 +324,7 @@ $F3::
 If (All_On) {
     If (S_LAttack) {
         Gosub, stop_lattack
+        F_AutoPick := 0
     }
     If (S_RAttack) {
         Gosub, stop_rattack
@@ -359,10 +367,10 @@ chantodo_monitor:
     ;仅在白人状态下执行
     If (!S_IsBlack && !S_ChantodoBuff20) {
         ;两个buff的范围
-        ImageSearch, FoundX, FoundY, 663, 908, 766, 958, %A_ScriptDir%\chantodo.png
+        ImageSearch, chantodoX, chantodoY, 663, 908, 766, 958, %A_ScriptDir%\chantodo.png
         If (ErrorLevel > 0) {
             ;buff位于第2顺位
-            ImageSearch, FoundX, FoundY, 663, 908, 766, 958, %A_ScriptDir%\chantodo1.png
+            ImageSearch, chantodoX, chantodoY, 663, 908, 766, 958, %A_ScriptDir%\chantodo1.png
         }
         S_ChantodoBuff20 := ErrorLevel = 0 ? 1 : 0
     }
@@ -380,10 +388,10 @@ Loop {
                 }
                 Else {
                     ;等待黑人技能CD
-                    ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon.png
+                    ImageSearch, archonX, archonY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon.png
                     If (ErrorLevel > 0) {
                         ;首次
-                        ImageSearch, FoundX, FoundY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon1.png
+                        ImageSearch, archonX, archonY, %P_SkillArea_X1%, %P_SkillArea_Y1%, %P_SkillArea_X2%, %P_SkillArea_Y2%, %A_ScriptDir%\archon1.png
                     }
                     If (ErrorLevel = 0 || S_IsBlack) {
                         Break
@@ -447,21 +455,25 @@ return
 
 ;角色血量监视器
 health_monitor:
-    If (isDead()) {
+If (isDead()) {
+    If (!S_CleanedUp) {
         ;角色死亡
-        Gosub, when_player_dead
+        Gosub, when_character_dies
+        ;清扫标记
+        S_CleanedUp := 1
     }
-    Else {
-        PixelGetColor, lifebar_color1, % 32 + Floor(60 * 0.3), 123 ,RGB
-        PixelGetColor, lifebar_color2, % 32 + Floor(60 * 0.3), 127 ,RGB
-        ;血量低于30%
-        If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
-            If (!isPotionCooling()) {
-                ;喝药水
-                Gosub, do_potion
-            }
+}
+Else {
+    PixelGetColor, lifebar_color1, % 32 + Floor(60 * 0.3), 123 ,RGB
+    PixelGetColor, lifebar_color2, % 32 + Floor(60 * 0.3), 127 ,RGB
+    ;血量低于30%
+    If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
+        If (!isPotionCooling()) {
+            ;喝药水
+            Gosub, do_potion
         }
     }
+}
 return
 
 auto_protect_on:
@@ -481,8 +493,8 @@ auto_protect_off:
     showMsg("AutoProtect Off")
 return
 
-;当角色死亡时，停止所有主动操作
-when_player_dead:
+;当角色死亡时执行的清理工作
+when_character_dies:
 If (S_LAttack) {
     Gosub, stop_lattack
     F_AutoPick := 0
@@ -510,7 +522,7 @@ If (All_On && (!S_LAttack || F_AutoPick)) {
     }
     Send, {Shift Down}  ;按下Shift
     If (F_AutoPick) {
-        F_AutoPick := 0        
+        F_AutoPick := 0
     }
     Else {
         SetTimer, do_lattack, %P_LAttackInterval%
@@ -524,9 +536,7 @@ return
 If (All_On) {
     If (S_LAttack) {
         Gosub, stop_lattack
-        If (F_AutoPick) {
-            F_AutoPick := 0
-        }
+        F_AutoPick := 0
     }
     Click, Down, Right  ;按下鼠标右键
     S_RAttack := 1
