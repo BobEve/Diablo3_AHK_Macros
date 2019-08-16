@@ -1,7 +1,7 @@
 ## 暗黑破坏神3 AHK宏
 
 以下作品支持友好且非商业的修改与分享，不允许这些作品直接或以这些作品为核心的定制作品参与任何商业活动！<br />
-转载请注明出处：https://github.com/shalves/Diablo3_AHK_Macros
+转载、修改时请保留原作者标识，并注明出处：https://github.com/shalves/Diablo3_AHK_Macros
 
 ##### 猎魔人暗影飞刀宏v2.11
 + F1：开启/关闭宏功能（默认关闭，运行后需手动开启）

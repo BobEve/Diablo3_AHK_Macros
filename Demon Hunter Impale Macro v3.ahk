@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III猎魔人暗影飞刀AHK宏
-; v3.11 20190816
+; v3.12 20190817
 ; Present by 是梦~` QQ:46317239
 ;=========================================
 #NoEnv
@@ -86,7 +86,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：仅适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.11（是梦~`` QQ:46317239）
+Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.12（是梦~`` QQ:46317239）
 Return
 
 Gosub, 说明
@@ -115,7 +115,13 @@ stopAutoFunction(func) {
 isDead() {
     PixelGetColor, lifebar_color1, 32, 123, RGB
     PixelGetColor, lifebar_color2, 32, 127, RGB
-    return (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) ? True : False
+    If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
+        ;判断是否激活了春哥被动
+        PixelGetColor, lifebar_color1, 1209, 909, RGB
+        PixelGetColor, lifebar_color2, 1210, 910, RGB
+        return (lifebar_color1 = 0x2A0000 && lifebar_color2 = 0x8E0000) ? False : True
+    }
+    return False
 }
 
 ;检查角色血量是否小于指定的百分比
