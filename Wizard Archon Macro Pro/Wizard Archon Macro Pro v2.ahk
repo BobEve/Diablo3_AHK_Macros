@@ -357,7 +357,7 @@ autoArchon() {
             }
             Until (!F_AutoArchon || S_IsDead)
 
-            If (F_AutoArchon && !S_IsDead && !S_IsBlack ) {
+            If (F_AutoArchon && !S_IsDead && !S_IsArchon) {
                 SetTimer, ActiveArchon, -1
                 ;在关闭自动黑人功能或角色死亡时中断黑人20秒等待
                 Loop, 100 {
