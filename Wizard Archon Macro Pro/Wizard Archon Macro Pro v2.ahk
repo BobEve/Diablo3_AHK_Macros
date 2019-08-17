@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III魔法师维尔御法者AHK宏
-; Pro Edition v2.21 20190815
+; Pro Edition v2.22 20190818
 ; Present by 是梦~` QQ:46317239
 ;=========================================
 #NoEnv
@@ -18,6 +18,7 @@ SetKeyDelay -1
 SetMouseDelay -1
 SetBatchLines -1
 #IfWinActive, ahk_class D3 Main Window Class
+
 
 ;技能按键设置
 ;/////////////////////////////////////////////////////////
@@ -100,7 +101,7 @@ Gui Font, Bold cRed
 Gui Add, Text, x15 y350 w480 h20 +0x200, 注意：仅适配1920x1080(16:9宽屏)！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w530 h375, 暗黑III魔法师维尔御法者AHK宏加强版v2.21（是梦~`` QQ:46317239）
+Gui Show, w530 h375, 暗黑III魔法师维尔御法者AHK宏加强版v2.22（是梦~`` QQ:46317239）
 Return
 
 Gosub, 说明
@@ -325,8 +326,7 @@ getArchon() {
     Loop {
         S_IsArchon := isArchon() ? 1 : 0
         If (S_IsArchon) {
-            ;autoFunction("lostArchon", -20000)
-            SetTimer, lostArchon, % P_AutoBlastInterval - 20000
+            autoFunction("lostArchon", P_AutoBlastInterval - 20000)
             S_ChantodoBuff20 := 0
             Break
         }
@@ -345,34 +345,28 @@ getArchon() {
 ;监测迦陀朵Buff，20层激活御法者
 autoArchon() {
     global
-    showMsg("AutoArchon On")
-    Loop {
-        If (!S_IsDead && !S_IsArchon && !S_ChantodoBuff20) {
-            S_ChantodoBuff20 := isChantodoBuff20() ? 1 : 0
-            If (S_ChantodoBuff20) {
-                Loop {
-                    ;黑人技能CD完成，或已经手动变身
-                    If (S_IsArchon || !isArchonCooling()) {
-                        Break
-                    }
-                    Sleep, 20
+    If (!S_IsDead && !S_IsArchon && !S_ChantodoBuff20) {
+        S_ChantodoBuff20 := isChantodoBuff20() ? 1 : 0
+        If (S_ChantodoBuff20) {
+            Loop {
+                ;黑人技能CD完成，或已经手动变身
+                If (S_IsArchon || !isArchonCooling()) {
+                    Break
+                }
+                Sleep, 20
+            }
+            Until (!F_AutoArchon || S_IsDead)
+
+            If (F_AutoArchon && !S_IsDead && !S_IsBlack ) {
+                SetTimer, ActiveArchon, -1
+                ;在关闭自动黑人功能或角色死亡时中断黑人20秒等待
+                Loop, 100 {
+                    Sleep, 200
                 }
                 Until (!F_AutoArchon || S_IsDead)
-
-                If (F_AutoArchon && !S_IsDead && !S_IsBlack ) {
-                    SetTimer, ActiveArchon, -1
-                    ;在关闭自动黑人功能或角色死亡时中断黑人20秒等待
-                    Loop, 100 {
-                        Sleep, 200
-                    }
-                    Until (!F_AutoArchon || S_IsDead)
-                }
             }
         }
-        Sleep, %P_AutoBlackInterval%
     }
-    Until (!F_AutoArchon)
-    showMsg("AutoArchon Off")
 }
 
 ;角色死亡
@@ -423,6 +417,7 @@ AutoArchonOn:
     S_IsArchon := 0
     S_ChantodoBuff20 := 0
     autoFunction("autoArchon", P_AutoArchonInterval)
+    showMsg("AutoArchon On")
 return
 
 ;关闭自动御法者
@@ -431,6 +426,7 @@ AutoArchonOff:
     stopAutoFunction("autoArchon")
     S_IsArchon := 0
     S_ChantodoBuff20 := 0
+    showMsg("AutoArchon Off")
 return
 
 ;在启动宏功能时执行
