@@ -3,7 +3,7 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 #SingleInstance, force
-#MaxThreads, 20
+#MaxThreads, 10
 SetControlDelay 1
 SetWinDelay 0
 SetKeyDelay -1
@@ -34,11 +34,12 @@ global ShenMuPosY :=
 
 global P_On := 1
 global P_AutoFullCircle := 0
+global P_WarnInTeamChat := 0
 
 global S_Running := 0
 global S_NeedRunShenMu := 0
 
-global totalTimeSpent := 11910
+global totalTimeSpent := 11984
 
 
 WinGetPos, , , GameWidth, GameHeight, ahk_class D3 Main Window Class
@@ -48,7 +49,7 @@ setText("双黑奥陨(就绪)")
 return
 
 ;热键-----------------------------------------------
-$F2::
+$F1::
     P_On := !P_On
     If (P_On) {
         setText("双黑奥陨(就绪)")
@@ -63,6 +64,15 @@ $F2::
             P_AutoFullCircle := 0
         }
         stop()
+        setText("双黑奥陨(关闭)")
+    }
+return
+
+$F2::
+    If (!P_On) {
+        P_WarnInTeamChat := !P_WarnInTeamChat
+        setText(P_WarnInTeamChat ? "队伍提醒开启" : "队伍提醒关闭")
+        Sleep, 1000
         setText("双黑奥陨(关闭)")
     }
 return
@@ -94,11 +104,20 @@ $XButton1::
     If (P_On) {
         P_AutoFullCircle := !P_AutoFullCircle
         If (P_AutoFullCircle) {
+            If (P_WarnInTeamChat) {
+                sendChat("奥开宏")
+            }
             startFromArchon()
             SetTimer, autoFullCircle, 10
         }
         Else {
             stopFullCircle()
+            If (P_WarnInTeamChat) {
+                sendChat("宏关闭")
+                SetTimer, warnArchon, Off
+                SetTimer, warnArchonCountDown6, Off
+                SetTimer, warnLostArchon, Off
+            }
         }
     }
 return
@@ -111,6 +130,9 @@ $XButton2::
             stopRunning()
         }
         P_AutoFullCircle := 1
+        If (P_WarnInTeamChat) {
+            sendChat("电开宏")
+        }
         startFromArchonMeteor()
         SetTimer, autoFullCircle, 10
     }
@@ -214,6 +236,13 @@ showTime() {
     }
 }
 
+;发送队伍聊天消息
+sendChat(text) {
+    Send, {Enter}
+    Send, %text%
+    Send, {Enter}
+}
+
 sleepFrams(fnum) {
     If (fnum > 0) {
         Sleep, % Floor(MillisecondsPerFrame * fnum)
@@ -278,6 +307,11 @@ doArchon() {
         SetTimer, doArchonBlast, 800
         SetTimer, lostArchon, -19200
         setText("自动循环(黑人)")
+        If (P_WarnInTeamChat) {
+            SetTimer, warnArchon, -200
+            SetTimer, warnArchonCountDown6, -13600
+            SetTimer, warnLostArchon, -19600
+        }
     }
 }
 
@@ -287,6 +321,18 @@ doArchonBlast() {
 
 lostArchon() {
     SetTimer, doArchonBlast, Off
+}
+
+warnArchon() {
+    sendChat("法师黑人状态")
+}
+
+warnArchonCountDown6() {
+    sendChat("黑人状态剩余6秒")
+}
+
+warnLostArchon() {
+    sendChat("法师白人状态")
 }
 
 markShenMu() {
@@ -321,6 +367,7 @@ autoFullCircle() {
 startFromArchon() {
     resetClock()
     doArchon()
+    totalTimeSpent := 11984
 }
 
 startFromArchonMeteor() {
@@ -331,6 +378,7 @@ startFromArchonMeteor() {
     doGuide(6)
     resetClock()
     doArchon()
+    totalTimeSpent := 11984
 }
 
 doFullCircleQueue() {
@@ -339,6 +387,7 @@ doFullCircleQueue() {
     local fullCircleStartTime := A_TickCount
     
     setText("自动循环(白人)")
+    sleepFrams(6)
     ;刷黄道
     doWaveOfForce(38)
     doGuide(18)
@@ -348,6 +397,9 @@ doFullCircleQueue() {
     doGuide(18)
 
     setText("自动循环(第一发)")
+    If (P_WarnInTeamChat) {
+        sendChat("第一发！")
+    }
     doWaveOfForce(38)
     ;第1颗陨石
     doArcaneDynamo(84)
@@ -357,18 +409,21 @@ doFullCircleQueue() {
 
     setText("自动循环(定位)")
     ;间隔
-    doArcaneDynamo(65)
+    doArcaneDynamo(63 - P_WarnInTeamChat)
     doGuide(18)
     doWaveOfForce(38)
     doGuide(18)
 
     setText("自动循环(第二发)")
+    If (P_WarnInTeamChat) {
+        sendChat("第二发！")
+    }
     doWaveOfForce(38)
     ;第2颗陨石
     doArcaneDynamo(84)
 
     ;元素循环误差调节
-    adjustmentTime := Ceil((11910 - totalTimeSpent) * 0.8)
+    adjustmentTime := Ceil((11984 - totalTimeSpent) * 0.8)
     realSleep(adjustmentTime)
 
     If (S_NeedRunShenMu) {
