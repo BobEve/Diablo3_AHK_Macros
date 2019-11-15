@@ -304,7 +304,7 @@ doArchon() {
     If (P_AutoFullCircle) {
         Send, {%K_Archon%}
         Sleep, 50
-        ;SetTimer, doArchonBlast, 800
+        SetTimer, doArchonBlast, 800
         SetTimer, lostArchon, -19200
         setText("自动循环(黑人)")
         If (P_WarnInTeamChat) {
