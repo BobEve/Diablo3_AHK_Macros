@@ -286,6 +286,14 @@ doGuide(fnum) {
     }
 }
 
+doGuideMS(ms) {
+    If (P_AutoFullCircle) {
+        Click, Down, Right
+        realSleep(ms)
+        Click, Up, Right
+    }
+}
+
 doWaveOfForce(fnum) {
     If (P_AutoFullCircle) {
         Send, {%K_WaveOfForce%}
@@ -356,7 +364,7 @@ runShenMu() {
 
 autoFullCircle() {
     local t := Floor(ElapsedTime / 10) * 10
-    If (t >= 20090 && t <= 20110) {
+    If (t >= 19990 && t <= 20010) {
         If (S_Running) {
             stopRunning() 
         }
@@ -374,10 +382,10 @@ startFromArchonMeteor() {
     doWaveOfForce(38)
     doArcaneDynamo(84)
     doMeteor(36)
-    sleepFrams(2)
-    doArcaneDynamo(36)
     sleepFrams(3)
-    doGuide(6)
+    doArcaneDynamo(36)
+    sleepFrams(5)
+    doGuideMS(3)
     resetClock()
     doArchon()
     totalTimeSpent := 11984
@@ -391,6 +399,7 @@ doFullCircleQueue() {
     setText("自动循环(白人)")
     sleepFrams(6)
     ;刷黄道
+    
     doWaveOfForce(38)
     doGuide(18)
     doWaveOfForce(38)
@@ -407,6 +416,7 @@ doFullCircleQueue() {
     doArcaneDynamo(84)
     doMeteor(36)
     doArcaneDynamo(36)
+    sleepFrams(3)
     doGuide(12)
 
     setText("自动循环(定位)")
@@ -427,19 +437,19 @@ doFullCircleQueue() {
     ;元素循环误差调节
     adjustmentTime := Ceil((11984 - totalTimeSpent) * 0.8)
     realSleep(adjustmentTime)
-
     If (S_NeedRunShenMu) {
         doMeteor(18)
         runShenMu()
-        sleepFrams(60)
+        sleepFrams(62)
     }
     Else {
         doMeteor(36)
-        sleepFrams(2)
-        doArcaneDynamo(36)
         sleepFrams(3)
+        doArcaneDynamo(36)
+        sleepFrams(5)
     }
-    doGuide(6)
+
+    doGuideMS(3)
     totalTimeSpent := A_TickCount - fullCircleStartTime
     
     doArchon()
