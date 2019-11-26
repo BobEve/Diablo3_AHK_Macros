@@ -397,9 +397,9 @@ doFullCircleQueue() {
     local fullCircleStartTime := A_TickCount
     
     setText("自动循环(白人)")
-    sleepFrams(6)
+    sleepFrams(9)
+
     ;刷黄道
-    
     doWaveOfForce(38)
     doGuide(18)
     doWaveOfForce(38)
@@ -421,7 +421,7 @@ doFullCircleQueue() {
 
     setText("自动循环(定位)")
     ;间隔
-    doArcaneDynamo(55 - P_WarnInTeamChat)
+    doArcaneDynamo(48 - P_WarnInTeamChat)
     doGuide(18)
     doWaveOfForce(38)
     doGuide(18)
@@ -433,7 +433,6 @@ doFullCircleQueue() {
     doWaveOfForce(38)
     ;第2颗陨石
     doArcaneDynamo(84)
-
     ;元素循环误差调节
     adjustmentTime := Ceil((11984 - totalTimeSpent) * 0.8)
     realSleep(adjustmentTime)
