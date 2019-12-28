@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 魔法师32秒循环双黑人奥陨宏（单刷版）
-; v1.7 20191210 for D3 v2.6.7.64160
+; v1.7 20191210 for D3 v2.6.7
 ; Present by 是梦~` QQ:46317239
 ; 说明：
 ; 1、此宏适用于法师带冰戒单刷，或2~3人组队的中层打法，不适用4人组队的高层打法
@@ -258,9 +258,11 @@ lostArchon() {
 doStarPact() {
     doWaveOfForce(38)
     doArcaneDynamo(84)
+    ;doArcaneDynamo(81) ;1350ms
     doMeteor(36)
     sleepFrams(3)
     doArcaneDynamo(36)
+    ;doArcaneDynamo(33) ;550ms 2发
     sleepFrams(5)
     ;doGuide(3)
     doGuideMS(3)
