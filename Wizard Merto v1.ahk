@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 魔法师32秒循环双黑人奥陨宏
-; v1.8 20191227 for D3 v2.6.7
+; v1.81 20191228 for D3 v2.6.7
 ; Present by 是梦~` QQ:46317239
 ;=========================================
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
@@ -421,7 +421,7 @@ doFullCircleQueue() {
     }
     doWaveOfForce(38)
     ;第1颗陨石
-    doArcaneDynamo(81)
+    doArcaneDynamo(84)
     doMeteor(36)
     doArcaneDynamo(36)
     sleepFrams(3)
@@ -429,10 +429,10 @@ doFullCircleQueue() {
 
     setText("自动循环(定位)", 1)
     ;间隔
-    doArcaneDynamo(20 - P_WarnInTeamChat)
-    doWaveOfForce(38)
+    doArcaneDynamo(21 - P_WarnInTeamChat)
+    doWaveOfForce(36)
     doGuide(18)
-    doWaveOfForce(38)
+    doWaveOfForce(36)
     doGuide(18)
 
     setText("自动循环(第二发)", 1)
