@@ -59,8 +59,7 @@ Menu, Tray, Standard
 说明:
 Gui Font, Bold
 Gui Add, GroupBox, x10 y10 w500 h50, 键位设置
-Gui Font
-Gui Font, Bold cBlue
+Gui Font, cBlue
 Gui Add, Text, x25 y26 w480 h23 +0x200, 1：护甲、2：御法者、[3：传送]、4：魔法武器、左：黑洞、右：奥术洪流
 Gui Font
 Gui Font, Bold
