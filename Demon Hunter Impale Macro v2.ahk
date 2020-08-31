@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III猎魔人暗影飞刀AHK宏
-; v3.12 20190817
+; v2.11 20190816
 ; Present by 是梦~` QQ:46317239
 ;=========================================
 #NoEnv
@@ -32,9 +32,8 @@ P_AutoMoveInterval := 50            ;自动拾取间隔，默认50毫秒
 P_AutoBuyInterval := 50             ;自动购买间隔, 默认50毫秒
 P_AutoBuyQuantity := 30             ;自动购买次数，默认30次
 ;-----------------------------------
-P_AutoShadowPowerInterval := 500    ;自动暗影之力探测间隔，默认500毫秒
-P_AutoProtectInterval := 75         ;自动施放保护技能探测间隔，默认75毫秒，50~100
-P_HealthMonitorInterval := 200      ;血量探测间隔，默认200毫秒
+P_AutoVengeanceInterval := 60       ;自动施放复仇间隔，默认60毫秒，最低60
+P_AutoFanOfKnivesInterval := 60     ;自动施放刀扇间隔，默认60毫秒，最低60
 
 ;标志、状态变量（不可修改）
 ;/////////////////////////////////////////////////////////
@@ -42,13 +41,9 @@ All_On := 0                 ;总开关
 ;开关------------------------
 F_AutoMove := 0             ;左键自动拾取开关
 F_AutoProtect := 0          ;自动施放保护技能开关（复仇、刀扇）
-F_HealthMonitoring := 1     ;血量监测，低于40%喝药水，死亡清理
-F_KeepShadowOn := 1         ;保持暗影之力开启状态
 ;状态------------------------
 S_RAttack := 0              ;右键自动攻击状态
 S_AutoClick := 0            ;左键连点状态
-S_IsDead := 0               ;角色死亡状态 0：存活，1：死亡
-S_CleanedUp := 0            ;角色死亡后清理状态 0：未清理，1：已清理
 
 
 ;脚本主体
@@ -73,20 +68,20 @@ Gui Font
 Gui Font, Bold
 Gui Add, GroupBox, x10 y70 w500 h250, 热键设置
 Gui Font
-Gui Add, Text, x20 y90 w480 h20 +0x200, ·F1：开启/关闭宏功能（默认关闭，开启后保持暗影之力、血量低于40`%自动喝药水）
+Gui Add, Text, x20 y90 w480 h20 +0x200, ·F1：开启/关闭宏功能（默认关闭，运行后需手动开启）
 Gui Add, Text, x20 y115 w480 h20 +0x200, ·F2：暂停/继续宏功能；·F7：退出脚本
 Gui Add, Text, x20 y140 w480 h20 +0x200, ·F3：自动购买[30]次装备（鼠标指针放到要购买的装备上）
 Gui Add, Text, x20 y165 w480 h20 +0x200, ·[2]键：暗影飞刀接影轮翻（非自动攻击时）、影轮翻（自动攻击时）
 Gui Add, Text, x20 y190 w480 h20 +0x200, ·上滚轮：同上
 Gui Add, Text, x20 y215 w480 h20 +0x200, ·下滚轮：开始持续右键技能攻击（暗影飞刀）
 Gui Add, Text, x20 y240 w480 h20 +0x200, ·右键：停止右键技能攻击
-Gui Add, Text, x20 y265 w480 h20 +0x200, ·前进（侧）/中键：自动保持复仇、刀扇状态（CD探测间隔[75]毫秒），再次点击停止
+Gui Add, Text, x20 y265 w480 h20 +0x200, ·前进（侧）/中键：点击立即施放1次暗影之力，自动循环施放复仇、刀扇，再次点击停止
 Gui Add, Text, x20 y290 w480 h20 +0x200, ·后退（侧）/[~]键：点击后开始移动/拾取（需要鼠标配合移动），再次点击停止
 Gui Font, Bold cRed
-Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：仅适配1920x1080(16:9宽屏)！
+Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：如需在游戏中使用上下滚轮，必须先关闭宏功能！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.12（是梦~`` QQ:46317239）
+Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v2.11（是梦~`` QQ:46317239）
 Return
 
 Gosub, 说明
@@ -106,59 +101,6 @@ autoFunction(func, interval) {
 
 stopAutoFunction(func) {
     SetTimer, %func%, Off
-}
-
-;游戏检查函数
-;/////////////////////////////////////////////////////////
-;检查角色是否死亡
-;返回值：True 死亡、False 存活
-isDead() {
-    PixelGetColor, lifebar_color1, 32, 123, RGB
-    PixelGetColor, lifebar_color2, 32, 127, RGB
-    If (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000) {
-        ;判断是否激活了春哥被动
-        PixelGetColor, lifebar_color1, 1209, 909, RGB
-        PixelGetColor, lifebar_color2, 1210, 910, RGB
-        return (lifebar_color1 = 0x2A0000 && lifebar_color2 = 0x8E0000) ? False : True
-    }
-    return False
-}
-
-;检查角色血量是否小于指定的百分比
-;默认0.4(40%)
-;返回值：True 小于、False 不小于
-healthLess(percent = 0.4) {
-    PixelGetColor, lifebar_color1, % 32 + Floor(60 * percent), 123, RGB
-    PixelGetColor, lifebar_color2, % 32 + Floor(60 * percent), 127, RGB
-    PixelGetColor, lifebar_color3, 32, 125, RGB
-    return (lifebar_color1 = 0x000000 && lifebar_color2 = 0x000000 && lifebar_color3 = 0x940000) ? True : False
-}
-
-;检查药水技能是否处于冷却状态
-;返回值：True 冷却中、False 可用
-isPotionCooling() {
-    PixelGetColor, potion_color1, 1062, 1004 ,RGB
-    PixelGetColor, potion_color2, 1062, 1007 ,RGB
-    return (potion_color1 = 0x151617 && potion_color2 = 0x1D1E1F) ? False : True
-}
-
-;检查暗影之力效果是否消失
-isShadowPowerOff() {
-    PixelGetColor, shadow_color1, 634, 1004 ,RGB
-    PixelGetColor, shadow_color2, 683, 1053 ,RGB
-    return (shadow_color1 = 0x3B3838 && shadow_color2 = 0x3C3952) ? True : False
-}
-
-;检查复仇技能是否处于冷却状态
-isVengeanceCooling() {
-    PixelGetColor, vengeance_cd_color, 791, 1007 ,RGB
-    return (vengeance_cd_color = 0x570E01 || vengeance_cd_color = 0x560D00) ? False : True
-}
-
-;检查刀扇技能是否处于冷却状态
-isKnivesColling() {
-    PixelGetColor, knives_cd_color, 858, 1007 ,RGB
-    return (knives_cd_color = 0x652015 || knives_cd_color = 0x641F14) ? False : True
 }
 
 
@@ -211,9 +153,7 @@ doPotion() {
 
 ;暗影之力
 doShadowPower() {
-    If (isShadowPowerOff()) {
-        Send, {%K_DemonHunterShadowPower%}
-    }
+    Send, {%K_DemonHunterShadowPower%}
 }
 
 ;影轮翻
@@ -223,16 +163,12 @@ doVault() {
 
 ;复仇
 doVengeance() {
-    If (!isVengeanceCooling()) {
-        Send, {%K_DemonHunterVengeance%}
-    }
+    Send, {%K_DemonHunterVengeance%}
 }
 
 ;刀扇
 doKnives() {
-    If (!isKnivesColling()) {
-        Send, {%K_DemonHunterFanOfKnives%}
-    }
+    Send, {%K_DemonHunterFanOfKnives%}
 }
 
 ;停止自动施放保护技能
@@ -240,37 +176,6 @@ stopAutoProtect() {
     stopAutoFunction("doVengeance")
     stopAutoFunction("doKnives")
     global F_AutoProtect := 0
-}
-
-;角色死亡
-characterDies() {
-    global
-    If (S_AutoClick) {
-        stopAutoLClick(0)
-    }
-    If (S_RAttack) {
-        stopRAttack()
-    }
-}
-
-;角色血量监视
-healthMonitor() {
-    global
-    S_IsDead := isDead() ? 1 : 0
-    If (S_IsDead) {
-        If (!S_CleanedUp) {
-            ;角色死亡后，进行清理
-            characterDies()
-            S_CleanedUp := 1
-        }
-    }
-    Else {
-        ;血量小于40%，喝药水
-        If (healthLess() && !isPotionCooling()) {
-            doPotion()
-        }
-        S_CleanedUp := 0
-    }
 }
 
 
@@ -282,24 +187,12 @@ return
 
 ;在启动宏功能时执行
 OnStart:
-    If (F_KeepShadowOn) {
-        autoFunction("doShadowPower", P_AutoShadowPowerInterval)
-    }
-    If (F_HealthMonitoring) {
-        S_IsDead := 0
-        autoFunction("healthMonitor", P_HealthMonitorInterval)
-    }
+;...
 return
 
 ;在停止宏功能时执行
 OnStop: 
-    If (F_KeepShadowOn) {
-        stopAutoFunction("doShadowPower")
-    }
-    If (F_HealthMonitoring) {
-        stopAutoFunction("healthMonitor")
-        S_IsDead := 0
-    }
+;...
 return
 
 
@@ -435,8 +328,9 @@ $XButton2::
 If (All_On) {
     F_AutoProtect := !F_AutoProtect
     If (F_AutoProtect) {
-        autoFunction("doVengeance", P_AutoProtectInterval)
-        autoFunction("doKnives", P_AutoProtectInterval)
+        doShadowPower()
+        autoFunction("doVengeance", P_AutoVengeanceInterval)
+        autoFunction("doKnives", P_AutoFanOfKnivesInterval)
     }
     Else {
         stopAutoProtect()
