@@ -80,8 +80,7 @@ Menu, Tray, Standard
 说明:
 Gui Font, Bold
 Gui Add, GroupBox, x10 y10 w510 h50, 键位设置
-Gui Font
-Gui Font, Bold cBlue
+Gui Font, cBlue
 Gui Add, Text, x25 y26 w480 h23 +0x200, 1：护甲、2：御法者、[3：传送]、4：魔法武器、左：黑洞、右：奥术洪流 
 Gui Font
 Gui Font, Bold
@@ -98,7 +97,7 @@ Gui Add, Text, x20 y265 w480 h20 +0x200, ·右键：停止右键技能攻击
 Gui Add, Text, x20 y290 w480 h20 +0x200, ·前进（侧）/中键：御法者形态时，强制停止正在自动施放的元素爆术
 Gui Add, Text, x20 y315 w480 h20 +0x200, ·后退（侧）/[``]键：点击后开始移动/拾取（需要鼠标配合移动），再次点击停止
 Gui Font, Bold cRed
-Gui Add, Text, x15 y350 w480 h20 +0x200, 注意：仅适配1920x1080(16:9宽屏)！
+Gui Add, Text, x15 y350 w480 h20 +0x200, 注意：仅适配1920x1080(16:9宽屏)，不支持与TurboHUD同时使用！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
 Gui Show, w530 h375, 暗黑III魔法师维尔御法者AHK宏加强版v2.22（是梦~`` QQ:46317239）

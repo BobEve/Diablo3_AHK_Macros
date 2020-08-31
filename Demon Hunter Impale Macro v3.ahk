@@ -1,6 +1,6 @@
 ﻿;=========================================
 ; 暗黑III猎魔人暗影飞刀AHK宏
-; v3.12 20190817
+; v3.16 20200829
 ; Present by 是梦~` QQ:46317239
 ;=========================================
 #NoEnv
@@ -20,10 +20,13 @@ SetBatchLines -1
 
 ;技能按键设置
 ;/////////////////////////////////////////////////////////
-global K_DemonHunterVault := 2           ;影轮翻技能，默认2键
-global K_DemonHunterShadowPower := 1     ;暗影之力技能，默认1键
-global K_DemonHunterVengeance := 3       ;复仇技能，默认3键
-global K_DemonHunterFanOfKnives := 4     ;刀扇技能，默认4键
+global K_DemonHunterFanOfKnives := 1     ;刀扇技能
+global K_DemonHunterVengeance := 2       ;复仇技能
+global K_DemonHunterVault := 3           ;影轮翻技能
+global K_DemonHunterShadowPower := 4     ;暗影之力技能
+global K_ForceMove := "W"                ;强制移动
+
+global MillisecondsPerFrame := (1000 / 60)
 
 ;可自定义的参数
 ;/////////////////////////////////////////////////////////
@@ -54,7 +57,7 @@ S_CleanedUp := 0            ;角色死亡后清理状态 0：未清理，1：已
 ;脚本主体
 ;/////////////////////////////////////////////////////////
 ;注册可自定义热键
-;Hotkey, ~$%K_DemonHunterVault%, doVault
+;Hotkey, $*%K_DemonHunterVault%, ImprovedVault
 
 ;右下角菜单
 Menu, Tray, NoStandard
@@ -65,28 +68,26 @@ Menu, Tray, Standard
 ;说明窗口
 说明:
 Gui Font, Bold
-Gui Add, GroupBox, x10 y10 w500 h50, 键位设置
-Gui Font
-Gui Font, Bold cBlue
-Gui Add, Text, x25 y26 w480 h23 +0x200, 1：暗影之力、2：影轮翻、3：复仇、4：刀扇、左：战宠、右：暗影飞刀
+Gui Add, GroupBox, x10 y10 w530 h50, 键位设置
+Gui Font, cBlue
+Gui Add, Text, x25 y26 w510 h23 +0x200, 1：刀扇、2：复仇、3：影轮翻、4：暗影之力、左：战宠、右：暗影飞刀、W：强制移动
 Gui Font
 Gui Font, Bold
-Gui Add, GroupBox, x10 y70 w500 h250, 热键设置
+Gui Add, GroupBox, x10 y70 w530 h230, 热键设置
 Gui Font
-Gui Add, Text, x20 y90 w480 h20 +0x200, ·F1：开启/关闭宏功能（默认关闭，开启后保持暗影之力、血量低于40`%自动喝药水）
-Gui Add, Text, x20 y115 w480 h20 +0x200, ·F2：暂停/继续宏功能；·F7：退出脚本
-Gui Add, Text, x20 y140 w480 h20 +0x200, ·F3：自动购买[30]次装备（鼠标指针放到要购买的装备上）
-Gui Add, Text, x20 y165 w480 h20 +0x200, ·[2]键：暗影飞刀接影轮翻（非自动攻击时）、影轮翻（自动攻击时）
-Gui Add, Text, x20 y190 w480 h20 +0x200, ·上滚轮：同上
-Gui Add, Text, x20 y215 w480 h20 +0x200, ·下滚轮：开始持续右键技能攻击（暗影飞刀）
-Gui Add, Text, x20 y240 w480 h20 +0x200, ·右键：停止右键技能攻击
-Gui Add, Text, x20 y265 w480 h20 +0x200, ·前进（侧）/中键：自动保持复仇、刀扇状态（CD探测间隔[75]毫秒），再次点击停止
-Gui Add, Text, x20 y290 w480 h20 +0x200, ·后退（侧）/[~]键：点击后开始移动/拾取（需要鼠标配合移动），再次点击停止
+Gui Add, Text, x20 y90 w510 h20 +0x200, ·F1：开启/关闭宏功能（默认关闭，开启后保持暗影之力、血量低于40`%自动喝药水）
+Gui Add, Text, x20 y115 w510 h20 +0x200, ·F2：暂停/继续宏功能；·F7：退出脚本
+Gui Add, Text, x20 y140 w510 h20 +0x200, ·F3：自动购买[30]次装备（鼠标指针放到要购买的装备上）
+Gui Add, Text, x20 y165 w510 h20 +0x200, ·上滚轮/[E]键：暗影飞刀接影轮翻（非自动攻击时）、影轮翻（自动攻击时）
+Gui Add, Text, x20 y190 w510 h20 +0x200, ·下滚轮/空格：开始持续右键技能攻击（暗影飞刀）
+Gui Add, Text, x20 y215 w510 h20 +0x200, ·右键：停止右键技能攻击
+Gui Add, Text, x20 y240 w510 h20 +0x200, ·前进（侧）/中键：自动保持复仇、刀扇状态（CD探测间隔[75]毫秒），再次点击停止
+Gui Add, Text, x20 y265 w510 h20 +0x200, ·后退（侧）/[~]键：点击后开始移动/拾取（需要鼠标配合移动），再次点击停止
 Gui Font, Bold cRed
-Gui Add, Text, x15 y325 w480 h20 +0x200, 注意：仅适配1920x1080(16:9宽屏)！
+Gui Add, Text, x15 y310 w510 h20 +0x200, 注意：仅适配1920x1080(16:9宽屏)，不支持与TurboHUD同时使用！
 Gui Font
 Gui -MinimizeBox -MaximizeBox
-Gui Show, w520 h350, 暗黑III猎魔人暗影飞刀AHK宏v3.12（是梦~`` QQ:46317239）
+Gui Show, w550 h340, 暗黑III猎魔人暗影飞刀AHK宏v3.16（是梦~`` QQ:46317239）
 Return
 
 Gosub, 说明
@@ -142,24 +143,25 @@ isPotionCooling() {
     return (potion_color1 = 0x151617 && potion_color2 = 0x1D1E1F) ? False : True
 }
 
-;检查暗影之力效果是否消失
-isShadowPowerOff() {
-    PixelGetColor, shadow_color1, 634, 1004 ,RGB
-    PixelGetColor, shadow_color2, 683, 1053 ,RGB
-    return (shadow_color1 = 0x3B3838 && shadow_color2 = 0x3C3952) ? True : False
+;检查刀扇技能是否处于冷却状态
+isKnivesColling() {
+    PixelGetColor, knives_cd_color, 658, 1007 ,RGB
+    return (knives_cd_color = 0x652015 || knives_cd_color = 0x641F14) ? False : True
 }
 
 ;检查复仇技能是否处于冷却状态
 isVengeanceCooling() {
-    PixelGetColor, vengeance_cd_color, 791, 1007 ,RGB
-    return (vengeance_cd_color = 0x570E01 || vengeance_cd_color = 0x560D00) ? False : True
+    PixelGetColor, vengeance_cd_color, 724, 1007 ,RGB
+    return (vengeance_cd_color = 0x6B1805 || vengeance_cd_color = 0x6A1704) ? False : True
 }
 
-;检查刀扇技能是否处于冷却状态
-isKnivesColling() {
-    PixelGetColor, knives_cd_color, 858, 1007 ,RGB
-    return (knives_cd_color = 0x652015 || knives_cd_color = 0x641F14) ? False : True
+;检查暗影之力效果是否消失
+isShadowPowerOff() {
+    PixelGetColor, shadow_color1, 834, 1004 ,RGB
+    PixelGetColor, shadow_color2, 883, 1053 ,RGB
+    return (shadow_color1 = 0x3B3838 && shadow_color2 = 0x3C3952) ? True : False
 }
+
 
 
 ;技能操作
@@ -350,26 +352,26 @@ If (All_On) {
 return
 
 ;*****************************
-;热键：【上滚轮】、【2键】
+;热键：【E键】、【上滚轮】
 ;功能：攻击状态时，施放影轮翻；非攻击状态时，施放暗影飞刀+影轮翻
 ;*****************************
-$*2::
+$*E::
 ~$*WheelUp::
 ImprovedVault:
-If (All_On &&!S_RAttack) {
-    If (F_AutoMove) {
-        Click, Right, 1
-        Sleep, 200
-    }
-    Else If (GetKeyState("LButton")) {
-        Click, Left, , Up
-        Click, Right, 1
-        Sleep, 200
-        Click, Left, , Down
-    }
-    Else {
-        If (!GetKeyState("RButton")) {
-            Click, Right, 1
+If (All_On && !S_RAttack) {
+    If (!GetKeyState("RButton")) {
+        If (F_AutoMove || GetKeyState(K_ForceMove)) {
+            doImpale()
+            Sleep, MillisecondsPerFrame * 10
+        }
+        Else If (GetKeyState("LButton")) {
+            Click, Left, , Up
+            doImpale()
+            Sleep, MillisecondsPerFrame * 10
+            Click, Left, , Down
+        }
+        Else {
+            doImpale()
         }
     }
     doVault()
@@ -380,9 +382,10 @@ Else {
 return
 
 ;*****************************
-;热键：【下滚轮】
+;热键：【空格】、【下滚轮】
 ;功能：开始鼠标右键攻击
 ;*****************************
+~$*Space::
 ~$*WheelDown::
 If (All_On && !S_RAttack) {
     If (S_AutoClick) {
