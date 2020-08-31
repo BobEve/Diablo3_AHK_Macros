@@ -237,6 +237,11 @@ doKnives() {
     }
 }
 
+;暗影飞刀
+doImpale() {
+    Click, Right, 1
+}
+
 ;停止自动施放保护技能
 stopAutoProtect() {
     stopAutoFunction("doVengeance")
